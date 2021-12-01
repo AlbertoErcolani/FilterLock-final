@@ -1,0 +1,177 @@
+%%
+% @theory: FilterLock
+% @author: alberto
+%%
+FilterLock: THEORY
+BEGIN 
+  IMPORTING PROC,
+            actions,
+            IOA,
+            finite_sets[PROC]
+
+  PCs: DATATYPE BEGIN
+    pcIdle : pcIdle?
+      pcL1 : pcL1?
+      pcL2 : pcL2?
+      pcL3 : pcL3?
+      pcL4 : pcL4?
+      pcL5 : pcL5?
+      pcL6 : pcL6?
+      pcL7 : pcL7?
+      pcL8 : pcL8?
+      pcL9 : pcL9?
+      pcL10 : pcL10?
+      pcL11 : pcL11?
+      pcL12 : pcL12?
+  END PCs
+
+  cState : TYPE = [#
+      pc: [ PROC -> PCs ],
+      i : [ PROC -> nat ],
+      level : [PROC -> nat],
+      victim : [nat -> PROC],
+      W: [nat -> finite_set[PROC]],
+      C : [PROC -> finite_set[PROC]], % Set of processes to check.
+      qq: [PROC -> PROC], % The next process to check.
+      S : [PROC -> finite_set[PROC]] % Set of processes having 'level' lower than my 'i'.
+  #]
+
+  InitialStatePredicate(s:cState): bool =
+      FORALL (proc:PROC) : (
+        s`pc(proc) = pcIdle AND
+        s`i(proc)=1 AND % Let's start with i=1, for convenience.
+        s`level(proc) = 0 AND
+        s`C(proc)=fullset AND
+        s`S(proc)=emptyset
+        )
+    AND
+      FORALL (j:nat) : (
+        IF j = 0 THEN s`W(j) = fullset
+        ELSE          s`W(j) = emptyset
+        ENDIF
+      )
+
+  LogicPrec(alpha: action?)(s:cState) : bool =
+    CASES alpha OF
+      lock2T(proc: PROC) :  s`i(proc) <THREADS,
+      lock2F(proc: PROC) :  s`i(proc) =THREADS,
+
+      lock6T(proc: PROC) :  member(s`qq(proc), s`C(proc)) AND NOT member(s`qq(proc), s`S(proc)),
+      lock6F(proc: PROC) :  empty?(s`C(proc)),
+
+      lock7T(proc: PROC) :  s`level(s`qq(proc))< s`i(proc),
+      lock7F(proc: PROC) :  s`level(s`qq(proc))>=s`i(proc),
+                                
+      lock8T(proc: PROC) : card(s`S(proc))<THREADS,
+      lock8F(proc: PROC) : card(s`S(proc))=THREADS,
+
+      lock9T(proc: PROC) : s`victim(s`i(proc)) =proc,
+      lock9F(proc: PROC) : s`victim(s`i(proc))/=proc
+
+      ELSE TRUE
+    ENDCASES
+
+  PcPrec(alpha : action?) : PCs =
+      CASES alpha OF
+        LockInv(proc:PROC) :    pcIdle,
+
+        lock1(proc: PROC) :     pcL1,
+        lock2T(proc: PROC):     pcL2,
+        lock2F(proc: PROC):     pcL2,
+        lock3(proc: PROC) :     pcL3,
+        lock4(proc: PROC) :     pcL4,
+        lock5(proc: PROC) :     pcL5,
+        lock6T(proc: PROC):     pcL6,
+        lock6F(proc: PROC):     pcL6,
+        lock7T(proc: PROC):     pcL7,
+        lock7F(proc: PROC):     pcL7,
+        lock8T(proc: PROC):     pcL8,
+        lock8F(proc: PROC):     pcL8,
+        lock9T(proc: PROC):     pcL9,
+        lock9F(proc: PROC):     pcL9,
+        lock10(proc: PROC) :   pcL10,
+
+        unlock1(proc: PROC):   pcL11,
+        
+        LockRet(proc:PROC) :   pcL12
+      ENDCASES
+
+  Precondition(alpha : action?)(s : cState) : bool =
+      LogicPrec(alpha)(s) AND s`pc( proc(alpha) ) = PcPrec(alpha)
+
+  PcEff(alpha: action?) : PCs =
+    CASES alpha OF
+      LockInv(proc:PROC) :    pcL1,
+
+      lock1(proc: PROC) :     pcL2,
+      lock2T(proc: PROC) :    pcL3,
+      lock2F(proc: PROC) :   pcL11,
+      lock3(proc: PROC) :     pcL4,
+      lock4(proc: PROC) :     pcL5,
+      lock5(proc: PROC) :     pcL6,
+      lock6T(proc: PROC) :    pcL7,
+      lock6F(proc: PROC) :   pcL10,
+      lock7T(proc: PROC) :    pcL8,
+      lock7F(proc: PROC) :    pcL9,
+      lock8T(proc: PROC) :    pcL6,
+      lock8F(proc: PROC) :   pcL10,
+      lock9T(proc: PROC) :    pcL5,
+      lock9F(proc: PROC) :   pcL10,
+      lock10(proc: PROC) :    pcL2,
+
+      unlock1(proc: PROC) :  pcL12,
+
+      LockRet(proc:PROC) :    pcIdle
+
+    ENDCASES
+
+  LogicEff(alpha:action?) (s: (Precondition(alpha)) ) : cState =
+    CASES alpha OF
+      lock1(proc: PROC) :     s WITH [`i(proc)     := 1 ],
+      lock2F(proc:PROC) :     s,
+      lock3(proc: PROC) :     s WITH [`level(proc) := s`i(proc) ],
+      lock4(proc: PROC) :     s WITH [`victim(s`i(proc)) := proc,
+                                      `S(proc) := add(proc, emptyset),
+                                      `C(proc) := remove(proc, fullset) ],
+      lock5(proc:PROC)  :     s WITH [`S(proc) := add(proc, emptyset),
+                                      `C(proc) := remove(proc, fullset) ],
+      %lock6T(proc:PROC) :     s WITH [`qq(proc):= choose({q:PROC | member(q, s`C(proc))}) ],
+      lock6F(proc:PROC) :     s WITH [`W(s`i(proc)) :=  add(proc, s`W( s`i(proc)) ) ],
+      lock7F(proc:PROC) :     s WITH [`S(proc) := emptyset, `C(proc) := fullset ],
+      lock7T(proc:PROC) :     s WITH [`S(proc) := add(s`qq(proc), s`S(proc)),
+                                      `C(proc) := remove(s`qq(proc), s`C(proc))],
+      lock8F(proc:PROC):     s WITH [`S(proc) := emptyset,
+                                      `C(proc) := fullset,
+                                      `W(s`i(proc)) :=  add(proc, s`W( s`i(proc)) ) ],
+      lock9T(proc:PROC):     s WITH [`S(proc) := add(proc, emptyset),
+                                      `C(proc) := remove(proc, fullset) ],
+      lock9F(proc:PROC):     s WITH [`W(s`i(proc)) :=  add(proc, s`W( s`i(proc)) ) ],
+      lock10(proc: PROC):     s WITH [`i(proc) := s`i(proc)+1 ],
+
+      unlock1(proc: PROC) :   s WITH [`level(proc) := 0,
+                                      `i(proc)     := 1,
+                                      `W:=
+                                      (LAMBDA (i:nat):
+                                        % There's no need to enter 0 because we never left it.
+                                        IF i>0 AND i<=(s`i(proc)) THEN remove( proc, s`W(i) )
+                                        ELSE s`W(i)
+                                        ENDIF
+                                      ) ]
+      ELSE s  % It is important to restrict this match to s: (Prec(alpha)) for having the
+                % NOP operation.
+    ENDCASES
+
+  CO_IOA : TYPE = IOA[cState, action?].IOA
+
+  Effect(alpha:action?)( s:(Precondition(alpha)) ) : cState =
+      LogicEff(alpha)(s) WITH [
+          pc := s`pc WITH [ (proc(alpha)) := PcEff(alpha) ]
+      ]
+
+  co_ioa_inst: CO_IOA = (#
+      initial := InitialStatePredicate,
+      pre := Precondition,
+      eff := Effect
+  #)
+
+END FilterLock

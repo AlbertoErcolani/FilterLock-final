@@ -1,0 +1,25 @@
+%%
+% @theory: main
+% @author: alberto
+%
+% DISCLAIMER: the code hereby provided is adapted from the companion code of:
+%
+% 	Robert Colvin, Lindsay Groves, Victor Luchangco, and Mark Moir.
+%	Formal Verification of a Lazy Concurrent List-Based Set Algorithm.
+%	In Thomas Ball and Robert B. Jones, editors, Computer Aided Verification, pages 475-488, Berlin, Heidelberg, 2006.
+%	Springer Berlin Heidelberg.
+%	doi:10.1007/11817963_44.
+%
+%%
+main : THEORY
+BEGIN
+    IMPORTING Lemmata
+
+	%%%%%%%%%%%%%%%%%
+	MutualExclusion(c:FilterLock.cState) : bool =
+	  FORALL (p,q:PROC) : NOT ( c`pc(p)=pcL11 AND c`pc(q)=pcL11 AND p/=q)
+	inv_7 : THEOREM
+	  invariant(co_ioa_inst, MutualExclusion)
+	%%%%%%%%%%%%%%%%%
+
+END main

@@ -1,0 +1,560 @@
+(defun get-op-name (label)
+	(let ( (f (formula (car (select-seq (s-forms *goal*) label)))) )
+	(if (negation? f)
+		(id (operator (args1 f)))
+		(id (operator f))
+	)
+	)
+)
+
+(defstep eta-alpha ()
+    (then (let ( (ca_name (format nil "(~A)" (get-op-name -1)) ) )
+            (with-labels (eta ca_name) (("alpha"))))
+        (inst "alpha" "alpha")
+    )
+    "Turns term 'alpha' into an instance of the particular action,
+    eg, 'eff(alpha)' becomes 'eff(addResp)', if addResp happens to be
+    alpha"
+    ""
+)
+
+(defun has-quantifier (sform)
+	(let ((has-quant nil))
+		(mapobject #'(lambda (x)
+			(if has-quant t
+				(when	(or (forall-expr? x)(exists-expr? x))
+						(setq has-quant t) t)))
+			sform)
+	has-quant)
+)
+(defun shout (msg)
+	(format nil "--------------------------------~%[~A]~%--------------------------------" msg)
+)
+(defun fetch (index) ; - Index can also be a string.
+	(if (null (s-forms *goal*))
+		nil
+		(let (( fml (car (select-seq (s-forms *goal*) index)) ))
+			(if (null fml)
+				nil
+				(formula fml)
+			)
+		)
+	)
+)
+(defun fetch-hidden (index) ; - Index can also be a string.
+	(if (null (hidden-s-forms *goal*))
+		nil
+		(let (( fml (car (select-seq (hidden-s-forms *goal*) index)) ))
+			(if (null fml)
+				nil
+				(formula fml)
+			)
+		)
+	)
+)
+(defstep skos (index &rest params)
+	(if (null index) ; - Check the index is defined.
+		(let (( msg (shout "Please provide a formula index.") )) (skip-msg msg) )
+		(if (null params) ; - Check params are defined.
+			(let (( msg (shout "Please provide params.") )) (skip-msg msg) )
+			(if (or 
+					(exists-expr? (fetch index)) ; - This is not evaluating to true when an exists is antecedent.
+					(forall-expr? (fetch index))
+					) ; - Check the formula is universal or existential.
+				(skolem index params) ; - skolemize.
+				(let (( msg (shout "Target a universal formula.") )) (skip-msg msg) )
+			)
+		)
+	)
+	"Parameters can be given in &rest form, i.e. skos 1 a b c d"
+	"Skolem constants have been introduced."
+)
+(defstep copy-tran ()
+	(if (and (null (fetch "tran")) (null (fetch-hidden "tran")))
+		(then (let (( msg (shout "No transition defined.") )) (skip-msg msg :force-printing? t) ) (fail) )
+		(then
+			(with-labels (copy tran) (("cp-tran")) )
+			(hide cp-tran)
+		)
+	)
+	"Makes a copy of transitions."
+	"Transition backed-up."
+)
+(defstep apply-tran (index)
+	(if (null index)
+		(let (( msg (shout "No target defined.") )) (skip-msg msg :force-printing? t) )
+		(if (and (null (fetch "cp-tran")) (null (fetch-hidden "cp-tran")))
+			(then (let (( msg (shout "No transition defined.") )) (skip-msg msg :force-printing? t) ) (fail) )
+			(then
+				(reveal cp-tran)
+				(try (replace cp-tran index)
+					(hide cp-tran) (hide cp-tran) ) ; - No matter what, no need to undo.
+			)
+		)
+	)
+	"Uses tran backup where needed."
+	"Used cp-tran."
+)
+(defstep suspend (p s0 s1 alpha &optional susp-inv)
+	(then
+		(if (null susp-inv) ;-In case no lemma is suggested, go to the default one.
+			(with-labels (lemma inv_suspended_proc) (("_strat-susp-inv")))
+			(let (( inv_name (format nil "inv_elev_bounds~A" susp-inv) ))
+				(with-labels (lemma inv_name) (("_strat-susp-inv")))
+			)
+		)
+		(if (null (fetch "_strat-susp-inv"))
+			(let (( msg (shout "Could not load lemma, check the name.") )) (skip-msg msg :force-printing? t) )
+			(then	;- Proceed with the stategy.
+				(expand invariant "_strat-susp-inv") ;- expand invariant.
+				(try
+					(inst "_strat-susp-inv" p s0 s1 alpha)
+					(then
+						; - use transition
+						(if (and (null (fetch "cp-tran")) (null (fetch-hidden "cp-tran")))
+							(then (let (( msg (shout "No transition defined.") )) (skip-msg msg :force-printing? t) ) (fail) )
+							(then
+								(let (( msg (shout "transition defined.") )) (skip-msg msg :force-printing? t) )
+								(reveal cp-tran)
+								(replace cp-tran "_strat-susp-inv") ;- use reachability.
+								(hide cp-tran)
+							)
+						)
+						(let (( new-label (format nil "susp-~A" p) ))
+							(label new-label "_strat-susp-inv")
+						)
+					)
+					(fail)
+				)
+			)
+		)
+	)
+	"Provided evidence is present, inserts formulas encoding the target process is suspended.
+	Process and state of interest must be defined."
+	"Process is suspended."
+)
+(defstep inv-induct ()
+	(then
+		(expand invariant)
+		(rule-induct reachable? + reachable?_induction)
+		(skos 1 s1)
+		(flatten)
+		(branch
+			(split)
+			(
+				(grind); - Should deal with the initial state.
+				(then
+					(skolem -1 (s0 alpha))
+					(with-labels (flatten) (("reach" "ind-hyp" "tran")))
+					(label "concl" 1)
+					(copy-tran)
+				)
+			)
+		)
+	)
+	"Sets up the induction over reachability for invariant proving."
+	"Induction is set up."
+)
+(defstep inv-setup ()
+	(then
+		(expand invariant)
+		(rule-induct reachable? + reachable?_induction)
+		(skos 1 s1)
+		(flatten)
+		(branch
+			(split)
+			(
+				(postpone)
+				(then
+					(skolem -1 (s0 alpha))
+					(with-labels (flatten) (("reach" "ind-hyp" "tran")))
+					(label "concl" 1)
+					(copy-tran)
+					(postpone)
+				)
+			)
+		)
+	)
+	"Sets up the induction over reachability without tackling it."
+	"Induction is set up."
+)
+(defstep inv-setup2 ()
+	(then
+		(auto-rewrite-theory-with-importings "invariant" :importchain? nil)
+		(assert)
+		(rule-induct reachable? + reachable?_induction)
+		(with-labels (skolem 1 "s1") (("ind-step")))
+		(flatten)
+		(branch
+			(split)
+			((postpone)
+			(then
+			(with-labels (then (skolem -1 (s0 alpha))(flatten)) (("reach" "ind-hyp" "tran" "ind-step")))		
+			(postpone)
+			))
+		)
+	)
+	"Sets up the induction over reachability without tackling it."
+	"Induction is set up."
+)
+(defstep by-construction ()
+	(try (assert) (fail) (skip) )
+	"Tries to discharge the branch by decision procedure: assert."
+	"Trivial case, by construction."
+)
+(defstep trivial ()
+	(try (grind) (fail) (skip) )
+	"Tries to discharge the branch by decision procedures: grind."
+	"Trivial case."
+)
+(defstep notice (index)
+	(then
+		(if (null (fetch index))
+			(then (let (( msg (shout "Indexed formula does not exist.") )) (skip-msg msg :force-printing? t) ) (fail) )
+			(apply (branch (split index) ((skip)(trivial)) ))
+		)
+	)
+	"Discharges a premise of the shape: Prem IMPLIES Concl and Prem is easily provable."
+	"The premise was trivial, it was discharged."
+)
+(defstep for-alpha ()
+	(then
+		(if (and (null (fetch "alpha")) (null (fetch-hidden "alpha")))
+			(then
+				(with-labels(typepred alpha)((alpha)));;;-Inserts the antecedent with a name.
+				(act-rewrite) (assert alpha);;;-Now alpha is a disjunction, we try to discharge as many subcases automatically.
+				(branch (split alpha)
+					((
+						then(eta-alpha)(replace alpha tran :dir rl)(assert tran)(with-labels(flatten tran)(("pre" "eff")))(hide alpha)
+						(comment "Ready to prove this case: transition is expanded w.r.t. alpha")
+						(trivial)
+					))
+				)
+			)
+			(then (let (( msg (shout "Alpha are already part of the proof.") )) (skip-msg msg :force-printing? t) ) (fail) )
+		)
+	)
+	"Adds the disjunction of alpha's values as an antecedent formula."
+	"Alpha values are now considered."
+)
+(defstep for-alpha-lazy ()
+	(then
+		(if (and (null (fetch "alpha")) (null (fetch-hidden "alpha")))
+			(then
+				(with-labels(typepred alpha)((alpha)));;;-Inserts the antecedent with a name.
+				(act-rewrite) (assert alpha);;;-Now alpha is a disjunction, we try to discharge as many subcases automatically.
+				(branch (split alpha)
+					((
+						then(eta-alpha)(replace alpha tran :dir rl)(assert tran)(with-labels(flatten tran)(("pre" "eff")))(hide alpha)
+						(comment "Ready to prove this case: transition is expanded w.r.t. alpha")
+					))
+				)
+			)
+			(then (let (( msg (shout "Alpha are already part of the proof.") )) (skip-msg msg :force-printing? t) ) (fail) )
+		)
+	)
+	"Adds the disjunction of alpha's values as an antecedent formula."
+	"Alpha values are now considered."
+)
+(defstep eta-any (any)
+    (then
+		(let ( (ca_name (format nil "(~A)" (get-op-name -1)) ) )
+			(with-labels (eta ca_name) ((any)))
+		)
+        (inst any any)
+    )
+    "Turns term 'alpha' into an instance of the particular action,
+    eg, 'eff(alpha)' becomes 'eff(addResp)', if addResp happens to be
+    alpha"
+    ""
+)
+(defstep reach-it (index)
+	(apply
+		(then
+			(branch (with-labels (split index) (("conseq" "target")))
+				((postpone) ;;; - This is the branch inside which we want to work.
+				(then
+					(expand reachable? conseq)
+					(with-labels (flatten conseq) (("init-state" "ind-step")))
+					(inst ind-step s0 alpha)
+					(show reach) (show cp-tran) (assert)
+				))
+			)
+		)
+	)
+	"Will reach state s1 atomically."
+	"State s1 is reached."
+)
+(defstep post-it (name)
+	(apply
+		(then
+			(with-labels (lemma name) (("temp-lemma")))
+			(expand invariant temp-lemma)
+			(inst temp-lemma s1)
+			(branch (with-labels (split temp-lemma) (("conseq" "target")))
+				((postpone) ;;; - This is the branch inside which we want to work.
+				(then
+					(expand reachable? conseq)
+					(with-labels (flatten conseq) (("init-state" "ind-step")))
+					(inst ind-step s0 alpha)
+					(show reach) (show cp-tran) (assert)
+				))
+			)
+		)
+	)
+	"Will reach state s1 atomically."
+	"State s1 is reached."
+)
+(defstep show (&rest params)
+	(reveal params)
+	"Wraps 'reveal' strategy."
+	""
+)
+(defstep load-rewrites (&rest theories)
+	(install-rewrites :defs T :theories theories)
+	"Loads rewrites."
+	"Common rewrites loaded."
+)
+(defstep conc-rewrite ()
+	(load-rewrites "FilterLock")
+	"Loads internal model rewrites."
+	"Common rewrites loaded."
+)
+(defstep act-rewrite ()
+	(load-rewrites "actions")
+	"Loads internal model rewrites."
+	"Common rewrites loaded."
+)
+(defstep top (&rest name)
+	(apply
+		(then
+			(label top-tmp-label (name) :push? T)
+			(hide top-tmp-label)
+			(show top-tmp-label)
+			(unlabel (name) top-tmp-label)
+		)
+	)
+	"Brings an (antecedent/consequent) named formula to (-1/+1) position"
+	"Formula is on top."
+)
+(defstep follow (conds)
+	(apply
+		(then
+			(branch (with-labels (case (conds)) (("when-cond")))
+				((replace "when-cond" "eff")
+				(replace "when-cond" "eff"))
+			)
+		)
+	)
+	"Develops the transition in a conditional-effect IOA."
+	"Choice applied."
+)
+(setq i-th-fact 0) 
+(defun get-next-fact ()
+	(progn
+		(setq i-th-fact (+  1 i-th-fact))
+		(format nil "fact-~d" i-th-fact)
+	)
+)
+(defstep reset-facts ()
+	(apply
+		(then
+			(with-labels (case true) (("true")))
+			(lisp (setq i-th-fact 0))
+		)
+	)
+	"Zeroes facts indexing."
+	"Facts indexing is now at 0."
+)
+(defstep fact (fact &rest args)
+	(apply
+		(let (( msg (get-next-fact) )) 
+			(then
+				(branch (with-labels (case fact) (( msg )) ) ;;; - Introduces the formula and solves the trivial denotational equivalence.
+					((postpone)
+					(assert))
+				)
+				(if (null args)	;;; - If some fact stems for source formulae, hide them.
+					(postpone)
+					(hide (args))
+				)
+			)
+		)
+	)
+	"Restates a fact that is known to be trivially true."
+	"Fact restated."
+)
+(defstep in-fact (fact &rest args)
+	(apply
+		(let (( msg (get-next-fact) )) 
+			(then
+				(branch (with-labels (case fact) (( msg )) ) ;;; - Introduces the formula and solves the trivial denotational equivalence.
+					((postpone)
+					(grind))
+				)
+				(if (null args)	;;; - If some fact stems for source formulae, hide them.
+					(postpone)
+					(hide (args))
+				)
+			)
+		)
+	)
+	"Restates a fact that is known to be trivially true."
+	"Fact restated."
+)
+(defstep inv-apply (inv-name state &optional &rest args)
+	(then
+		(with-labels (lemma inv-name)((inv-name)))
+		(expand "invariant" inv-name)
+		(instantiate inv-name state)
+		(notice inv-name)
+		(expand inv-name inv-name)
+		(instantiate inv-name args)
+	)
+	"Will apply invariant to input state and parameters."
+	"Invariant applied."
+)
+(defstep fwd-sim-prove-initial-states ()
+	(then
+		(expand fwd_simulation_initial_states)
+		(skos main s0)
+		(with-labels (typepred "s0") ((initial)))
+		(conc-rewrite) (assert initial) (flatten initial)
+		(inst main aInitial)
+		(expand fwd_sim_relation)
+		(branch
+			(split main)
+			((then
+				(expand fwd_sim_pc_correspondence)
+				(skos main p) ;;; reason about generic process.
+				(inst initial p)
+				(flatten initial)
+				(assert)
+			)
+			(assert))
+		) ;;; This branch is proven trivially.
+	)
+	"Automatically solves the initial states correspondence."
+	"Initial states, synchronized."
+)
+(defstep fwd-sim-single-step ()
+	(then
+		(expand "fwd_sim_pc_correspondence") (skos sim-corr p)
+		(spread ;;; Suppose the process is not executing.
+			(case "proc(alpha)/=p")
+			((then (inst pc-corr p) (grind))
+			(then ;;; In this case proc(alpha)=p
+				(with-labels (lemma inv_lock_precon) (("precon")))
+				(expand "invariant" precon)
+				(inst precon s0) (replace reach precon) (load-rewrites "LemmataForSimulation") (assert precon) (inst precon p)
+				(fwd-sim-abstract-pc) (grind))
+			)
+		)
+	)
+	""
+	""
+)
+(defstep fwd-sim-prove ()
+	(then
+		(expand fwd_sim_relation)
+		(spread (with-labels (split concl) (("sim-corr" "holder-eq")))
+			(
+			(branch (split alpha)
+				((fwd-sim-single-step))
+			)
+			(then			;;; Branch where we holders always match.
+				(with-labels (lemma inv_lock_precon) (("precon")))
+				(expand "invariant" precon)
+				(inst precon s0) (replace reach precon) (load-rewrites "LemmataForSimulation") (assert precon) ;;; Reduce precon to the bare def.
+				(inst precon "proc(alpha)")
+				;;; 
+				(branch (split alpha)
+					(( then(eta-alpha)(replace alpha tran :dir rl)(assert tran)(grind) )))
+			)
+			)
+		)
+	)
+	"Proves simulation relation correspondence."
+	"Proved."
+)
+(defstep fwd-sim-abstract-pc ()
+	(then
+		(eta-alpha)
+		(replace alpha tran :dir rl)
+		(conc-rewrite) (assert tran) (flatten tran) ;;; Prepare internal pc.
+		(load-rewrites "fwd_sim") (assert pc-corr) ;;; Expand pc-corr.
+		(inst pc-corr "proc(alpha)") ;;; Let proc(alpha) be the executor in the abstract aut.
+		(replace tran pc-corr) (assert pc-corr) (label "a0pc" pc-corr)
+	)
+	""
+	""
+)
+(defstep fwd-sim-state-equality	()
+	(then	;;; Let's prepare the precondition.
+		(with-labels (lemma inv_lock_precon) (("precon")))
+		(expand "invariant" precon)
+		(inst precon s0) (replace reach precon) (load-rewrites "LemmataForSimulation") (assert precon) ;;; Reduce precon to the bare def.
+		(inst precon "proc(alpha)") ;;; Ok, precon is ready, let's work out all actions.
+		(branch (split alpha)
+			((then
+			(fwd-sim-abstract-pc)
+			(replace alpha concl :dir rl)
+			(act-rewrite)
+			(expand "action_correspondence")
+			(assert concl)
+			(expand "transition")
+			(assert :quant-simp? T)
+			(expand "transition")
+			))
+		)
+	)
+	""
+	""
+)
+(defstep fwd-sim-prove-trace-equality ()
+	;;; Here we need to show that, no matter what the actions is, traces are equal.
+	(then
+		(hide-all-but (alpha concl))
+		(load-rewrites "fwd_sim") ;;; We use rewrites for avoiding to expand each definition every time.
+		(branch (split alpha)
+			(( then(eta-alpha)(replace alpha concl :dir rl)(assert concl) ))
+		)
+	)
+	"Automatically proves trace equality."
+	"Trace equality proved."
+)
+(defstep fwd-sim-develop-proof ()
+	(then
+		(label "main" 1)
+		(expand fwd_simulation_def main)
+		(branch (split main)
+			(
+			(fwd-sim-prove-initial-states)
+			;;; Let's setup the fwd sim proof.
+			(then
+				(expand "fwd_simulation_step" main)
+				(skos main alpha)
+				(expand fwd_simulation_step_action main)
+				(skos main s0 s1 a0)
+				(with-labels (flatten main) (("reach" "tran" "prem" "concl")))
+				(copy-tran) ;;; just in case.
+				(with-labels (typepred alpha) ((alpha)))
+				(act-rewrite) (assert alpha) ;;; We prepare some detail about transitions.
+				;;; Let's develop the fwd sim.
+				(expand "fwd_sim_relation" -)
+				(with-labels (flatten prem) (("pc-corr" "lock-holder")))
+				(inst concl _ "action_correspondence(alpha)")
+				(inst concl "CumulateEffect(a0, ab_ioa_inst, action_correspondence(alpha))")
+				;;; At this point theorem's conclusion is A && B && C, where B and C are easy to prove.
+				(stop-rewrite)
+				(branch
+					(split concl)
+					((fwd-sim-prove)(fwd-sim-state-equality)(fwd-sim-prove-trace-equality))
+				)
+			)
+			)
+		)
+	)
+	"Tries to prove the existence of a fwd-sim."
+	"Proved"
+)

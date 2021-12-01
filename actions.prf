@@ -1,0 +1,9 @@
+(actions
+ (action?_TCC1 0
+  (action?_TCC1-1 nil 3829640387
+   ("" (subtype-tcc)
+    (("" (expand "external") (("" (propax) nil nil)) nil)) nil)
+   ((external adt-def-decl "boolean" actions nil)
+    (proc_inst const-decl "PROC" PROC nil))
+   nil (action? subtype "actions.LockInv(PROC.proc_inst)" "action?"))))
+

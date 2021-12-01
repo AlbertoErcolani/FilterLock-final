@@ -1,0 +1,17 @@
+%%
+% @theory: invariant
+% @author: alberto
+%%
+invariant[
+    STATE : TYPE,
+    ACTION: TYPE+
+]: THEORY
+  BEGIN 
+    IMPORTING IOA
+
+    CO_IOA:TYPE = IOA[STATE, ACTION].IOA
+
+    invariant(co_ioa:CO_IOA, inv:[STATE->bool]) : bool =
+        FORALL (s:STATE) : reachable?(s, co_ioa) IMPLIES inv(s)
+
+  END invariant

@@ -1,0 +1,27 @@
+%%
+% @theory: IOA
+% @author: alberto
+%%
+IOA[
+  STATE : TYPE,
+  ACTION: TYPE+
+]: THEORY
+  BEGIN 
+    
+    IOA: TYPE = [#
+      initial: [STATE -> bool],
+      pre: [ACTION -> [STATE -> bool]],
+      eff: [a:ACTION -> [ ( pre(a) ) -> STATE ]]
+    #]
+
+    transition(s1:STATE, ioa:IOA, name:ACTION ,s2:STATE) : bool =
+      ioa`pre(name)(s1) AND s2 = ioa`eff(name)(s1)
+
+    reachable?(s0:STATE, ioa:IOA) : INDUCTIVE bool = 
+      ioa`initial(s0) OR (
+        exists (s1:STATE), (name:ACTION) :
+          reachable?(s1, ioa) AND
+            transition(s1, ioa, name, s0)
+      )
+
+  END IOA

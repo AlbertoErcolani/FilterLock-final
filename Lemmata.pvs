@@ -1,0 +1,281 @@
+%%
+% @theory: Lemmata
+% @author: alberto
+%%
+Lemmata: THEORY
+BEGIN 
+  IMPORTING
+    FilterLock,
+    invariant[FilterLock.cState, action?],
+    actions
+
+c0,c1: VAR FilterLock.cState
+p,q,r,proc: VAR PROC
+alpha: VAR action?
+
+%%%%%%%%%%%%%%%%%
+Winner(c:FilterLock.cState, p:PROC, j:nat) : bool =
+  c`i(p)>j OR
+  (c`i(p)=j AND  (c`pc(p)=pcL10))
+
+CheckFlag(c:FilterLock.cState, p:PROC) : bool =
+  LET pc = c`pc(p) IN
+    pc=pcL5 OR pc=pcL6 OR
+    pc=pcL7 OR pc=pcL8
+CheckVictim(c:FilterLock.cState, p:PROC) : bool =
+  LET pc = c`pc(p) IN pc=pcL9
+
+Competitor(c:FilterLock.cState, p:PROC, j:nat) : bool =
+  Winner(c, p, j) OR
+  ( c`i(p)=j AND (CheckFlag(c,p) OR CheckVictim(c,p)) )
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+lemma_1 : LEMMA
+  FORALL c0, c1, (proc:PROC), alpha, (j:nat) :
+   (transition(c0, co_ioa_inst, alpha, c1) AND
+      proc(alpha)/=proc AND
+        Winner(c1, proc, j))IMPLIES
+          Winner(c0, proc, j)
+%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%
+lemma_2 : LEMMA
+  FORALL c0, c1, (proc:PROC), alpha, (j:nat) :
+   (transition(c0, co_ioa_inst, alpha, c1) AND
+      proc(alpha)/=proc AND
+        Competitor(c1, proc, j))IMPLIES
+          Competitor(c0, proc, j)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+lemma_3 : LEMMA
+  FORALL c0, c1, alpha, p :
+    reachable?(c0, co_ioa_inst) AND
+      transition(c0, co_ioa_inst, alpha, c1) AND
+        proc(alpha)/=p
+          IMPLIES
+            c0`pc(p)=c1`pc(p)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+lemma_4 : LEMMA
+ FORALL (S:finite_set), (j:nat) :
+  card( S )=1 IMPLIES
+   (
+      (EXISTS p : member(p, S))
+    AND
+      (FORALL p,q :
+        member(p, S) AND member(q, S)
+          IMPLIES p=q)
+   )
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+lemma_5 : LEMMA
+ FORALL (S:finite_set), (j:nat) :
+  card( S )=2 IMPLIES
+   (
+      (EXISTS p,q : member(p, S) AND member(q, S) AND p/=q)
+    AND
+      (FORALL p,q,r :
+        member(p, S) AND member(q, S) AND member(r, S)
+          IMPLIES p=q OR q=r OR p=r)
+   )
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+lemma_6 : LEMMA
+  card(fullset[PROC])=THREADS
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+PositiveI(c:FilterLock.cState) : bool =
+  FORALL p : c`i(p)>0
+inv_14 : LEMMA
+  invariant(co_ioa_inst, PositiveI)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+CSI(c:FilterLock.cState) : bool =
+  FORALL p : c`pc(p)=pcL11 IMPLIES c`i(p)=THREADS
+inv_15 : LEMMA
+  invariant(co_ioa_inst, CSI)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+IIsOne(c:FilterLock.cState) : bool =
+  FORALL p : c`pc(p)=pcL1 OR c`pc(p)=pcIdle OR c`pc(p)=pcL12
+    IMPLIES c`i(p)=1
+inv_16 : LEMMA
+  invariant(co_ioa_inst, IIsOne)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+LevelValue(c:FilterLock.cState) : bool =
+  FORALL p :
+    (c`pc(p)=pcL4 OR 
+    c`pc(p)=pcL5 OR c`pc(p)=pcL6 OR c`pc(p)=pcL7 OR 
+    c`pc(p)=pcL8 OR c`pc(p)=pcL9 OR c`pc(p)=pcL10
+    ) IMPLIES
+    c`i(p)=c`level(p)
+inv_17 : LEMMA
+  invariant(co_ioa_inst, LevelValue)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+LevelRange(c:FilterLock.cState) : bool =
+  FORALL p : c`i(p)=c`level(p) OR c`i(p)-1=c`level(p)
+inv_18 : LEMMA
+  invariant(co_ioa_inst, LevelRange)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+QQnotIn8(c:FilterLock.cState) : bool =
+  FORALL p : c`pc(p)=pcL7
+    IMPLIES NOT member(c`qq(p), c`S(p))
+inv_19 : LEMMA
+  invariant(co_ioa_inst, QQnotIn8)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+CAndS(c:FilterLock.cState) : bool =
+  FORALL p, q :
+    member(q, c`S(p)) IFF
+      NOT member(q, c`C(p))
+inv_20 : LEMMA
+  invariant(co_ioa_inst, CAndS)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+SComplementOfC(c:FilterLock.cState) : bool =
+  FORALL p : c`S(p)=complement(c`C(p))
+inv_21 : LEMMA
+  invariant(co_ioa_inst, SComplementOfC)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+BoundedCCardinality(c:FilterLock.cState) : bool =
+  FORALL p : card(c`C(p))<=THREADS
+inv_22 : LEMMA
+  invariant(co_ioa_inst, BoundedCCardinality)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+CAndSSize(c:FilterLock.cState) : bool =
+  FORALL p, (n:nat) :
+    card(c`S(p))=n IFF
+      card(c`C(p))=THREADS-n
+inv_23 : LEMMA
+  invariant(co_ioa_inst, CAndSSize)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+WinnerIsWinner(c:FilterLock.cState) : bool =
+  FORALL p, (j:nat) :
+    member(p, c`W(j)) IMPLIES 
+      Winner(c, p, j)
+inv_8 : LEMMA
+  invariant(co_ioa_inst, WinnerIsWinner)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+WinnerIsWinnerInv(c:FilterLock.cState) : bool =
+  FORALL p, (j:nat) :
+    Winner(c, p, j) IMPLIES member(p, c`W(j))
+inv_9 : LEMMA
+  invariant(co_ioa_inst, WinnerIsWinnerInv)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+WinnerCharacterization(c:FilterLock.cState) : bool =
+  FORALL p, (j:nat) :
+    Winner(c, p, j) IFF member(p, c`W(j))
+inv_10 : LEMMA
+  invariant(co_ioa_inst, WinnerCharacterization)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+HierarchicalWinners(c:FilterLock.cState) : bool =
+  FORALL p, (j:nat):
+    Winner(c, p, j+1) IMPLIES Winner(c, p, j)
+inv_11 : LEMMA
+  invariant(co_ioa_inst, HierarchicalWinners)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+HierarchicalWinnerAndComp(c:FilterLock.cState) : bool =
+  FORALL p, (j:nat):
+    Competitor(c, p, j+1) IMPLIES Winner(c, p, j)
+inv_12 : LEMMA
+  invariant(co_ioa_inst, HierarchicalWinnerAndComp)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+SubsetWs(c:FilterLock.cState) : bool =
+  FORALL (j:nat) :
+    subset?(c`W(j+1), c`W(j))
+inv_13 : LEMMA
+  invariant(co_ioa_inst, SubsetWs)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+Lemma21(c:FilterLock.cState) : bool =
+  (FORALL p,q, (j:nat) : j>0 AND Competitor(c, p, j) AND CheckFlag(c, p)
+    AND Competitor(c, q, j) AND member(q, c`S(p)) AND p/=q
+      IMPLIES c`victim(j)/=p)
+  AND
+  (FORALL p, q, (j:nat) : j>0 AND (Winner(c, p, j) AND 
+    (Competitor(c, q, j) AND p/=q))
+      IMPLIES c`victim(j)/=p)
+inv_1 : LEMMA
+  invariant(co_ioa_inst, Lemma21)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+WinnerIsNotVictim(c:FilterLock.cState) : bool =
+  FORALL p, q, (j:nat) : j>0 AND (Winner(c, p, j) AND 
+    (Competitor(c, q, j) AND p/=q))
+      IMPLIES c`victim(j)/=p
+inv_2 : LEMMA
+  invariant(co_ioa_inst, WinnerIsNotVictim)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+Lemma3(c:FilterLock.cState) : bool =
+  FORALL (j:nat) :
+    (EXISTS p : (Competitor(c, p, j)))
+      IMPLIES Competitor(c, c`victim(j), j)
+inv_3 : LEMMA
+  invariant(co_ioa_inst, Lemma3)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+NotWinner2(c:FilterLock.cState) : bool =
+  FORALL (j,n:nat) :
+    j>0 AND card(c`W(j))=2+n
+      IMPLIES
+        NOT member(c`victim(j), c`W(j))
+inv_4 : LEMMA
+  invariant(co_ioa_inst, NotWinner2)
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+FilteredCardinalityInv(c:FilterLock.cState) : bool =
+  FORALL (j:nat) :
+    0<=j AND j<=THREADS-1 IMPLIES
+      card( c`W(j) ) <= THREADS-j
+inv_5:LEMMA
+  invariant(co_ioa_inst, FilteredCardinalityInv)
+%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+AloneInCS(c:FilterLock.cState) : bool =
+  FORALL p :
+    (c`pc(p) = pcL11 OR (c`pc(p)=pcL2 AND c`i(p)=THREADS))
+      IMPLIES
+        member(p, c`W(THREADS-1))
+inv_6 : LEMMA
+  invariant(co_ioa_inst, AloneInCS)
+%%%%%%%%%%%%%%%%%
+
+END Lemmata

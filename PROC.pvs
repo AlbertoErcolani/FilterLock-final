@@ -1,0 +1,10 @@
+%%
+% @theory: PROC
+% @author: alberto
+%%
+PROC: THEORY
+BEGIN
+      THREADS: above(1)
+      PROC: TYPE+ = below(THREADS) CONTAINING 0
+      proc_inst : PROC = 0
+END PROC

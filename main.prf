@@ -1,0 +1,150 @@
+(main
+ (inv_7 0
+  (inv_7-1 nil 3846481837
+   ("" (expand "invariant")
+    (("" (skeep)
+      (("" (inv-apply inv_6 s)
+        (("" (inv-apply inv_6 s)
+          (("" (expand "AloneInCS")
+            (("" (expand "MutualExclusion")
+              (("" (skeep)
+                (("" (inst -1 p)
+                  (("" (inst -2 q)
+                    (("" (notice -1)
+                      (("" (notice -2)
+                        ((""
+                          (inv-apply inv_5
+                           s)
+                          (("" (expand "FilteredCardinalityInv")
+                            (("" (inst -1 "THREADS-1")
+                              ((""
+                                (notice -1)
+                                ((""
+                                  (assert -1)
+                                  ((""
+                                    (case "card(s`W(THREADS - 1)) <1")
+                                    (("1"
+                                      (in-fact
+                                       "card(s`W(THREADS - 1)) = 0")
+                                      (("1"
+                                        (lemma card_is_0)
+                                        (("1"
+                                          (inst -1 "s`W(THREADS-1)")
+                                          (("1"
+                                            (iff -1)
+                                            (("1"
+                                              (replace -2 -1)
+                                              (("1"
+                                                (assert -1)
+                                                (("1"
+                                                  (replace -1 (-5 -6))
+                                                  (("1"
+                                                    (hide-all-but
+                                                     (-5 -6))
+                                                    (("1"
+                                                      (grind)
+                                                      nil
+                                                      nil))
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil)
+                                     ("2"
+                                      (in-fact
+                                       "card(s`W(THREADS - 1)) = 1")
+                                      (("2"
+                                        (lemma lemma_4)
+                                        (("2"
+                                          (inst
+                                           -1
+                                           "s`W(THREADS-1)"
+                                           THREADS-1)
+                                          (("2"
+                                            (notice -1)
+                                            (("2"
+                                              (flatten -1)
+                                              (("2"
+                                                (delete -1)
+                                                (("2"
+                                                  (inst -1 p q)
+                                                  (("2"
+                                                    (notice -1)
+                                                    nil
+                                                    nil))
+                                                  nil))
+                                                nil))
+                                              nil))
+                                            nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   ((MutualExclusion const-decl "bool" main nil)
+    (inv_5 formula-decl nil Lemmata nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (int_minus_int_is_int application-judgement "int" integers nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (lemma_4 formula-decl nil Lemmata nil)
+    (real_lt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (emptyset const-decl "set" sets nil)
+    (member const-decl "bool" sets nil)
+    (finite_emptyset name-judgement "finite_set" finite_sets nil)
+    (finite_emptyset name-judgement "finite_set[PROC]" FilterLock nil)
+    (card_is_0 formula-decl nil finite_sets nil)
+    (card const-decl "{n: nat | n = Card(S)}" finite_sets nil)
+    (Card const-decl "nat" finite_sets nil)
+    (is_finite const-decl "bool" finite_sets nil)
+    (set type-eq-decl nil sets nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (real_le_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (FilteredCardinalityInv const-decl "bool" Lemmata nil)
+    (AloneInCS const-decl "bool" Lemmata nil)
+    (cState type-eq-decl nil FilterLock nil)
+    (PCs type-decl nil FilterLock nil)
+    (finite_set type-eq-decl nil finite_sets nil)
+    (THREADS const-decl "above(1)" PROC nil)
+    (above nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil) (< const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (PROC nonempty-type-eq-decl nil PROC nil)
+    (inv_6 formula-decl nil Lemmata nil)
+    (invariant const-decl "bool" invariant nil))
+   shostak)))
+
