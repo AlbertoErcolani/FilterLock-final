@@ -3,7 +3,7 @@
   (lemma_1-1 nil 3834042957
    ("" (skos 1 s0 s1 p alpha j)
     (("" (flatten 1)
-      (("" (label "tran" -1) (("" (for-alpha) nil nil)) nil)) nil))
+      (("" (label "tran" -1) (("" (for-alpha :lazy? nil) nil nil)) nil)) nil))
     nil)
    ((Winner const-decl "bool" Lemmata nil)
     (real_gt_is_strict_total_order name-judgement
@@ -84,7 +84,7 @@
   (lemma_2-1 nil 3834043013
    ("" (skos 1 s0 s1 proc alpha j)
     (("" (flatten 1)
-      (("" (label "tran" -1) (("" (for-alpha) nil nil)) nil)) nil))
+      (("" (label "tran" -1) (("" (for-alpha :lazy? nil) nil nil)) nil)) nil))
     nil)
    ((Competitor const-decl "bool" Lemmata nil)
     (CheckVictim const-decl "bool" Lemmata nil)
@@ -167,7 +167,7 @@
  (lemma_3 0
   (lemma_3-1 nil 3839771083
    ("" (skos 1 s0 s1 alpha p)
-    (("" (flatten) (("" (for-alpha) nil nil)) nil)) nil)
+    (("" (flatten) (("" (for-alpha :lazy? nil) nil nil)) nil)) nil)
    ((action? nonempty-type-eq-decl nil actions nil)
     (internal adt-def-decl "boolean" actions nil)
     (external adt-def-decl "boolean" actions nil)
@@ -588,7 +588,7 @@
         (("2" (skeep)
           (("2" (inst?)
             (("2" (case "proc(alpha)=p")
-              (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil))
+              (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil))
               nil))
             nil))
           nil))
@@ -709,7 +709,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil)) nil))
+            (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -828,7 +828,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil)) nil))
+            (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -949,7 +949,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil)) nil))
+            (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -1070,7 +1070,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (inv-apply inv_16 s0)
                 (("1" (expand "IIsOne")
                   (("1" (inst?)
@@ -1113,7 +1113,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -1240,8 +1240,8 @@
      ("2" (expand "QQnotIn8")
       (("2" (skos concl p)
         (("2" (case "proc(alpha)=p")
-          (("1" (inst ind-hyp p) (("1" (for-alpha) nil nil)) nil)
-           ("2" (inst ind-hyp p) (("2" (for-alpha) nil nil)) nil))
+          (("1" (inst ind-hyp p) (("1" (for-alpha :lazy? nil) nil nil)) nil)
+           ("2" (inst ind-hyp p) (("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -1363,9 +1363,9 @@
         (("2" (inst ind-hyp p q)
           (("2" (case "proc(alpha)=p OR proc(alpha)=q")
             (("1" (split -1)
-              (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil))
+              (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -1498,7 +1498,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (replace eff concl)
                 (("1" (replace -1)
                   (("1" (beta concl)
@@ -1594,7 +1594,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -1742,7 +1742,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (replace -1)
                 (("1" (lemma lemma_6)
                   (("1" (replace -6 concl)
@@ -1838,7 +1838,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -1988,7 +1988,7 @@
         (("2" (case "proc(alpha)=p")
           (("1" (copy ind-hyp)
             (("1" (inst ind-hyp p _)
-              (("1" (for-alpha)
+              (("1" (for-alpha :lazy? nil)
                 (("1" (replace eff concl)
                   (("1" (beta concl)
                     (("1" (skos concl n)
@@ -2295,7 +2295,7 @@
                 nil))
               nil))
             nil)
-           ("2" (inst ind-hyp p _) (("2" (for-alpha) nil nil)) nil))
+           ("2" (inst ind-hyp p _) (("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -2461,7 +2461,7 @@
       (("2" (skos concl p j)
         (("2" (inst ind-hyp p j)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (inv-apply inv_16 s0)
                 (("1" (expand "IIsOne" inv_16)
                   (("1" (inst inv_16 p)
@@ -2472,7 +2472,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -2612,7 +2612,7 @@
       (("2" (skos concl p j)
         (("2" (inst ind-hyp p j)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (inv-apply inv_16 s0)
                 (("1" (expand "IIsOne" inv_16)
                   (("1" (inst inv_16 p)
@@ -2642,7 +2642,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -2823,7 +2823,7 @@
       (("2" (skos concl p j)
         (("2" (inst ind-hyp p j)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha) nil nil) ("2" (for-alpha) nil nil)) nil))
+            (("1" (for-alpha :lazy? nil) nil nil) ("2" (for-alpha :lazy? nil) nil nil)) nil))
           nil))
         nil))
       nil))
@@ -2957,11 +2957,11 @@
                         (("1" (notice conseq) nil nil)) nil))
                       nil))
                     nil)
-                   ("2" (for-alpha) nil nil))
+                   ("2" (for-alpha :lazy? nil) nil nil))
                   nil))
                 nil))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
@@ -3104,7 +3104,7 @@
             (("2" (skos concl x)
               (("2" (inst ind-hyp x)
                 (("2" (flatten concl)
-                  (("2" (for-alpha)
+                  (("2" (for-alpha :lazy? nil)
                     (("1"
                       (with-labels (post-it inv_11) (("inv_h_winn")))
                       (("1" (expand "HierarchicalWinners" inv_h_winn)
@@ -3450,7 +3450,7 @@
                                       (("1"
                                         (inst ind-hyp-1 p q j)
                                         (("1"
-                                          (for-alpha-lazy)
+                                          (for-alpha :lazy? nil-lazy)
                                           (("1"
                                             (replace eff cf)
                                             (("1"
@@ -3981,7 +3981,7 @@
                                                                                         (fact
                                                                                          "s1`i(q)>=2")
                                                                                         (("1"
-                                                                                          (for-alpha-lazy)
+                                                                                          (for-alpha :lazy? nil-lazy)
                                                                                           (("1"
                                                                                             (assert)
                                                                                             nil
@@ -4077,11 +4077,11 @@
                                                                                           nil))
                                                                                         nil)
                                                                                        ("2"
-                                                                                        (for-alpha)
+                                                                                        (for-alpha :lazy? nil)
                                                                                         nil
                                                                                         nil)
                                                                                        ("3"
-                                                                                        (for-alpha)
+                                                                                        (for-alpha :lazy? nil)
                                                                                         nil
                                                                                         nil))
                                                                                       nil))
@@ -4164,7 +4164,7 @@
                                                               (hide
                                                                reach)
                                                               (("2"
-                                                                (for-alpha)
+                                                                (for-alpha :lazy? nil)
                                                                 nil
                                                                 nil))
                                                               nil))
@@ -4242,11 +4242,11 @@
                                                       (("1"
                                                         (split winn-p)
                                                         (("1"
-                                                          (for-alpha)
+                                                          (for-alpha :lazy? nil)
                                                           nil
                                                           nil)
                                                          ("2"
-                                                          (for-alpha)
+                                                          (for-alpha :lazy? nil)
                                                           (("1"
                                                             (reset-facts)
                                                             (("1"
@@ -4567,7 +4567,7 @@
                                                   (("2"
                                                     (delete fact-2)
                                                     (("2"
-                                                      (for-alpha)
+                                                      (for-alpha :lazy? nil)
                                                       nil
                                                       nil))
                                                     nil))
@@ -4628,7 +4628,7 @@
                                                         (("2"
                                                           (delete js)
                                                           (("2"
-                                                            (for-alpha)
+                                                            (for-alpha :lazy? nil)
                                                             nil
                                                             nil))
                                                           nil))
@@ -4886,8 +4886,8 @@
                   (("1" (flatten)
                     (("1" (replace -3 concl)
                       (("1" (case "s0`victim(j)=s1`victim(j)")
-                        (("1" (for-alpha) nil nil)
-                         ("2" (for-alpha) nil nil))
+                        (("1" (for-alpha :lazy? nil) nil nil)
+                         ("2" (for-alpha :lazy? nil) nil nil))
                         nil))
                       nil))
                     nil))
@@ -4896,9 +4896,9 @@
                   (("1" (expand "Lemma3")
                     (("1" (inst ind-hyp j)
                       (("1" (split ind-hyp)
-                        (("1" (for-alpha) nil nil)
+                        (("1" (for-alpha :lazy? nil) nil nil)
                          ("2" (case "NOT (Competitor(s0, p, j))")
-                          (("1" (for-alpha)
+                          (("1" (for-alpha :lazy? nil)
                             (("1" (inv-apply inv_16 s0)
                               (("1"
                                 (expand IIsOne inv_16)
@@ -5014,7 +5014,7 @@
                                 (("2"
                                   (split ind-hyp)
                                   (("1"
-                                    (for-alpha)
+                                    (for-alpha :lazy? nil)
                                     (("1"
                                       (expand "Competitor" ind-hyp)
                                       (("1"
@@ -5203,7 +5203,7 @@
                     (("2" (expand "Lemma3")
                       (("2" (inst ind-hyp j)
                         (("2" (split ind-hyp)
-                          (("1" (for-alpha) nil nil)
+                          (("1" (for-alpha :lazy? nil) nil nil)
                            ("2" (inst ind-hyp p) nil nil))
                           nil))
                         nil))
@@ -5464,7 +5464,7 @@
             nil)
            ("2" (label "concl" 1)
             (("2" (skos concl jj)
-              (("2" (for-alpha)
+              (("2" (for-alpha :lazy? nil)
                 (("1" (flatten concl)
                   (("1" (in-fact "card(s0`W(j)) = 2 + (jj + 1)")
                     (("1" (case "j/=s0`i(proc(alpha))")
@@ -6214,7 +6214,7 @@
           (("2" (with-labels (copy ind-hyp) ((ind-hyp-cp)))
             (("2" (skos concl j)
               (("2" (inst ind-hyp j)
-                (("2" (for-alpha)
+                (("2" (for-alpha :lazy? nil)
                   (("1" (delete concl)
                     (("1" (delete ind-hyp)
                       (("1" (with-labels (induct j) ((basis) (concl)))
@@ -7762,7 +7762,7 @@
       (("2" (skos concl p)
         (("2" (inst ind-hyp p)
           (("2" (case "proc(alpha)=p")
-            (("1" (for-alpha)
+            (("1" (for-alpha :lazy? nil)
               (("1" (flatten concl)
                 (("1" (split -6)
                   (("1" (grind) nil nil)
@@ -7781,7 +7781,7 @@
                   nil))
                 ";;; Ready to prove this case: transition is expanded w.r.t. alpha"))
               nil)
-             ("2" (for-alpha) nil nil))
+             ("2" (for-alpha :lazy? nil) nil nil))
             nil))
           nil))
         nil))
