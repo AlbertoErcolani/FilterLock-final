@@ -10,6 +10,14 @@
 %	Springer Berlin Heidelberg.
 %	doi:10.1007/11817963_44.
 %
+% This project aims at modelling and proving the Peterson-lock algorithm
+% satisfies mutual exclusion. Proofs are provided in such a way unexperienced PVS users
+% can compare mechanical and formal proofs, with the hope the access to mechanized proofs
+% results easier. An analogous model and proof are provided in Nancy Lynch's book:
+%
+%	Nancy A. Lynch.
+%	Distributed Algorithms. Morgan Kaufmann Publishers Inc., San Francisco, CA, USA, 1996
+%
 %%
 main : THEORY
 BEGIN

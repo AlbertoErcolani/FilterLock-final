@@ -259,6 +259,15 @@ inv_4 : LEMMA
   invariant(co_ioa_inst, NotWinner2)
 %%%%%%%%%%%%%%%%%
 
+% inv_4_1 is used to shorten the proof of invariant 5.
+%%%%%%%%%%%%%%%%%
+W0HasMaxCard(c:FilterLock.cState) : bool = 
+  card(c`W(0)) <= THREADS
+% @QED inv_4_1 proved by alberto on Tue, 03 Jan 2022 13:31:57 GMT
+inv_4_1 : LEMMA
+  invariant(co_ioa_inst, W0HasMaxCard)
+%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%
 FilteredCardinalityInv(c:FilterLock.cState) : bool =
   FORALL (j:nat) :
